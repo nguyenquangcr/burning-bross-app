@@ -10,8 +10,14 @@ export const ProductApi = createApi({
         url: `/products?limit=${limit}&skip=${skip}`,
         method: 'GET'
       })
-    })
+    }),
+    getProductsByKeySearch: builder.query<ListProduct, {search: string, skip:number}>({
+      query: ({search, skip}) => ({
+        url: `/products/search?q=${search}&limit=20&skip=${skip}`,
+        method: 'GET'
+      })
+    }),
   }),
 })
 
-export const { useGetAllProductQuery, useLazyGetAllProductQuery } = ProductApi;
+export const { useGetAllProductQuery, useLazyGetAllProductQuery, useLazyGetProductsByKeySearchQuery } = ProductApi;
