@@ -5,9 +5,8 @@ import {
   useLazyGetProductsByKeySearchQuery,
 } from "../../provider/redux/query/Product";
 import { ListProduct, Product } from "@/types/product.type";
-import InfiniteScroll from "react-infinite-scroll-component";
 import useDebounce from "@/hooks/useDebounce";
-import Image from "next/image";
+import ProductComponent from "@/components/ProductComponent";
 
 export default function Home() {
   const [getProduct] = useLazyGetAllProductQuery();
@@ -80,38 +79,10 @@ export default function Home() {
       {error ? (
         <div className="text-red-500">{error}</div>
       ) : (
-        <div id="scrollableDiv" className="w-fit max-h-[600px] overflow-auto">
-          <InfiniteScroll
-            dataLength={listProduct?.length ?? 0}
-            hasMore={true}
-            next={() => fetchMoreData()}
-            loader={<h4>Loading...</h4>}
-            scrollableTarget="scrollableDiv"
-          >
-            {listProduct &&
-              listProduct?.map((item: Product) => {
-                return (
-                  <div
-                    className="flex flex-row justify-start p-2 space-x-4 border border-gray-300"
-                    key={item.id}
-                  >
-                    <div>Name: {item.title}</div>
-                    <div>Price: {item.price}</div>
-                    <div>
-                      Image:{" "}
-                      <Image
-                        className="h-[50px]"
-                        src={item.images[0]}
-                        alt="_"
-                        width={100}
-                        height={50}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-          </InfiniteScroll>
-        </div>
+        <ProductComponent
+          fetchMoreData={fetchMoreData}
+          listProduct={listProduct}
+        />
       )}
     </main>
   );
