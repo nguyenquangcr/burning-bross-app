@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 import React from "react";
 import {
@@ -8,6 +7,7 @@ import {
 import { ListProduct, Product } from "@/types/product.type";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useDebounce from "@/hooks/useDebounce";
+import Image from "next/image";
 
 export default function Home() {
   const [getProduct] = useLazyGetAllProductQuery();
@@ -18,10 +18,8 @@ export default function Home() {
     undefined
   );
   const [error, setError] = React.useState<string | null>(null);
+
   const debouncedKeySearch = useDebounce(keySearch, 500);
-
-  console.log("debouncedKeySearch", debouncedKeySearch);
-
   React.useEffect(() => {
     getProduct({ limit: 20, skip: 0 })
       .unwrap()
@@ -29,63 +27,48 @@ export default function Home() {
         setListProduct(res.products ?? []);
       })
       .catch((error) => {
-        setError("Error fetching products. Please try again later."); // Set error message
+        setError("Error fetching products. Please try again later.");
       });
   }, []);
 
   React.useEffect(() => {
-    // Fetch products when debouncedKeySearch changes
     if (debouncedKeySearch) {
       if (debouncedKeySearch !== "") {
+        setListProduct([]);
         getProductByKey({ search: debouncedKeySearch, skip: 0 })
           .unwrap()
           .then((res: ListProduct) => {
             setListProduct(res.products);
           });
-      } else {
-        getProduct({ limit: 20, skip: 0 })
-          .unwrap()
-          .then((res: ListProduct) => {
-            setListProduct(res.products ?? []);
-          });
       }
+    } else {
+      setListProduct([]);
+      getProduct({ limit: 20, skip: 0 })
+        .unwrap()
+        .then((res: ListProduct) => {
+          setListProduct(res.products ?? []);
+        });
     }
   }, [debouncedKeySearch]);
 
   const fetchMoreData = async () => {
-    if (debouncedKeySearch === "") {
+    if (debouncedKeySearch) {
+      getProductByKey({ search: debouncedKeySearch, skip: listProduct?.length })
+        .unwrap()
+        .then((res: ListProduct) => {
+          setListProduct(listProduct.concat(res.products));
+        });
+    } else
       getProduct({ limit: 20, skip: listProduct?.length })
         .unwrap()
         .then((res: ListProduct) =>
           setListProduct(listProduct.concat(res.products))
         );
-    } else {
-      getProductByKey({ search: debouncedKeySearch, skip: listProduct?.length })
-        .unwrap()
-        .then((res: ListProduct) => {
-          setListProduct(res.products);
-        });
-    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setKeySearch(value);
-    // if (value !== "") {
-    //   setKeySearch(value);
-    //   getProductByKey({ search: value, skip: 0 })
-    //     .unwrap()
-    //     .then((res: ListProduct) => {
-    //       setListProduct(res.products);
-    //     });
-    // } else {
-    //   setKeySearch(null);
-    //   getProduct({ limit: 20, skip: 0 })
-    //     .unwrap()
-    //     .then((res: ListProduct) => {
-    //       setListProduct(res.products ?? []);
-    //     });
-    // }
   };
   return (
     <main className="flex min-h-screen flex-col space-x-4 p-24 gap-y-10">
@@ -116,11 +99,12 @@ export default function Home() {
                     <div>Price: {item.price}</div>
                     <div>
                       Image:{" "}
-                      <img
+                      <Image
                         className="h-[50px]"
                         src={item.images[0]}
                         alt="_"
                         width={100}
+                        height={50}
                       />
                     </div>
                   </div>
